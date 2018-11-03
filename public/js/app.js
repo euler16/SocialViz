@@ -43,6 +43,10 @@ force.on("tick", function () {
         .attr("cy", function (d) { return d.y; });
 });
 
+function start() {
+    
+}
+
 d3.select("#clusterButton").on("click", function () {
 
     /******************/
@@ -53,6 +57,24 @@ d3.select("#clusterButton").on("click", function () {
     svg.selectAll(".node").transition().duration(2000).style("fill", function (d) { return color(d.cluster); });
 });
 
+d3.select("#addButton").on("click", function() {
+    //testing
+
+    graph["nodes"].push({
+        "name": "Nilay",
+        "score": 20
+    });
+    softMax();
+    console.log(graph["nodes"].length);
+});
+
 function softMax() {
-    
+    let sum = 0.0;
+    for(let i=0;i<graph["nodes"].length;++i) {
+        sum += graph["nodes"][i]["score"];
+    }
+    for (let i = 0; i < graph["nodes"].length; ++i) {
+        graph["nodes"][i]["RAI"] = graph["nodes"][i]["score"]/sum;
+    }
+    console.log(graph["nodes"][0]);
 }

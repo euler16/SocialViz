@@ -3,24 +3,24 @@ var graph = {
         {
             "name": "Nilay",
             "score": 10,
-            "group": 1 
+            "RAI": 1 
         },
         {
             "name": "Mudit",
             "score": 15,
-            "group":2
+            "RAI":2
         },
         {
             "name": "Mudit",
             "score": 30,
-            "group": 3
+            "RAI": 3
         }
     ],
     "links": [
         {
             "source": 1,
             "target": 0,
-            "value": 1
+            "RAI": 1
         }
     ]
 }
