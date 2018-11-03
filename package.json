@@ -1,0 +1,23 @@
+{
+  "name": "socialviz",
+  "version": "1.0.0",
+  "description": "Social Graph visualizer",
+  "main": "main.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "electron ."
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/euler16/SocialViz.git"
+  },
+  "author": "Nilay Shrivastava",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/euler16/SocialViz/issues"
+  },
+  "homepage": "https://github.com/euler16/SocialViz#readme",
+  "devDependencies": {
+    "electron": "^3.0.7"
+  }
+}
