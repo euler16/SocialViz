@@ -23,48 +23,47 @@
 
 </head>
 <body>
-
-    <header class="toolbar toolbar-header">
-      <h1 class="title">SocialViz</h1>
-    
-      <div class="toolbar-actions">
-        <div class="btn-group">
-          <button class="btn btn-large btn-default">
-            <span class="icon icon-home"></span>
-          </button>
-          <button class="btn btn-large btn-default">
-            <span class="icon icon-folder icon-text"></span>
-             Open
-          </button>
-          <button id="save-btn" class="btn btn-large btn-default">
-            <span class="icon icon-floppy icon-text"></span>
-             Save Data
-          </button>
-          <button id="screenshot-btn" class="btn btn-large btn-default">
-            <span class="icon icon-picture icon-text"></span>
-             Save Graph
-          </button>
+  <div class="window">
+      <header class="toolbar toolbar-header">
+        <h1 class="title">SocialViz</h1>
+      
+        <div class="toolbar-actions">
+          <div class="btn-group">
+            <button class="btn btn-large btn-default">
+              <span class="icon icon-home"></span>
+            </button>
+            <button id="open-btn" class="btn btn-large btn-default">
+              <span class="icon icon-folder icon-text"></span>
+               Open
+            </button>
+            <button id="save-btn" class="btn btn-large btn-default">
+              <span class="icon icon-floppy icon-text"></span>
+               Save Data
+            </button>
+            <button id="screenshot-btn" class="btn btn-large btn-default">
+              <span class="icon icon-picture icon-text"></span>
+               Save Graph
+            </button>
+        </div>
+        <button id="clusterButton" class="btn btn-large btn-default">
+          <span class="icon icon-flow-tree icon-text"></span>
+          Cluster
+        </button>
+      </header>
+      <div class="window-content">
+        
+        <div id="graph"></div>
+        <!-- <button id="addButton" type="button">Add</button> -->
+        
+        
       </div>
-      <button id="clusterButton" class="btn btn-large btn-default">
-        <span class="icon icon-flow-tree icon-text"></span>
-        Cluster
-      </button>
-    </header>
-    
-    <div id="graph"></div>
-    <!-- <button id="addButton" type="button">Add</button> -->
-    
-    
-    <footer class="toolbar toolbar-footer">
-    </footer>
-
-
-    
-
-
-
+      <footer class="toolbar toolbar-footer">
+        <h1 class="title">Made By: Nilay Shrivastava</h1>
+      </footer>
+  </div>
+  
     <!-- javascript -->
-    <script type="text/javascript" src="js/data1.json"></script>
+    <!-- <script type="text/javascript" src="js/data1.json"></script> -->
     <script src="js/jquery.min.js"></script>
 
     <script src="http://mbostock.github.com/d3/d3.js"></script>
