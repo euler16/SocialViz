@@ -13,22 +13,62 @@
   stroke-opacity: .6;
 }
 
-button#clusterButton  {
+/* button#clusterButton  {
   margin-left:50px;
   margin-top:50px;
   font-size: 20pt;
-}
+} */
 </style>
-<link type="text/css" rel="stylesheet" href="css/materialize.min.css" media="screen,projection" />
+<link type="text/css" rel="stylesheet" href="css/photon.min.css" media="screen,projection" />
 
 </head>
 <body>
-    <button id="clusterButton" type="button">Cluster</button>
+
+    <header class="toolbar toolbar-header">
+      <h1 class="title">SocialViz</h1>
+    
+      <div class="toolbar-actions">
+        <div class="btn-group">
+          <button class="btn btn-large btn-default">
+            <span class="icon icon-home"></span>
+          </button>
+          <button class="btn btn-large btn-default">
+            <span class="icon icon-folder icon-text"></span>
+             Open
+          </button>
+          <button id="save-btn" class="btn btn-large btn-default">
+            <span class="icon icon-floppy icon-text"></span>
+             Save Data
+          </button>
+          <button id="screenshot-btn" class="btn btn-large btn-default">
+            <span class="icon icon-picture icon-text"></span>
+             Save Graph
+          </button>
+      </div>
+      <button id="clusterButton" class="btn btn-large btn-default">
+        <span class="icon icon-flow-tree icon-text"></span>
+        Cluster
+      </button>
+    </header>
+    
     <div id="graph"></div>
-    <script type="text/javascript" src="js/data.json"></script>
+    <!-- <button id="addButton" type="button">Add</button> -->
+    
+    
+    <footer class="toolbar toolbar-footer">
+    </footer>
+
+
+    
+
+
+
+    <!-- javascript -->
+    <script type="text/javascript" src="js/data1.json"></script>
     <script src="js/jquery.min.js"></script>
 
     <script src="http://mbostock.github.com/d3/d3.js"></script>
+
     <script type="text/javascript" src="js/cluster.js">   </script>
     <script src="js/app.js"></script>
     <!-- <script type="text/javascript" src="groupInABox.js">   </script> -->
