@@ -19,5 +19,8 @@
   "homepage": "https://github.com/euler16/SocialViz#readme",
   "devDependencies": {
     "electron": "^3.0.7"
+  },
+  "dependencies": {
+    "save-svg-as-png": "^1.4.6"
   }
 }

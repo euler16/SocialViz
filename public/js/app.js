@@ -91,20 +91,6 @@ d3.select("#save-btn").on("click", function() {
     });
 });
 
-/* document.getElementById('addnode-btn').addEventListener('click',function() {
-    let data = {
-        "name": addName.value,
-        "score": addScore.value
-    };
-    if (saveGraph === undefined) {
-        saveGraph = {};
-        saveGraph["nodes"] = [];
-        graph = JSON.parse(JSON.stringify(saveGraph));
-    }
-    saveGraph["nodes"].push(data);
-    addLinks();
-    console.log(data);
-}); */
 d3.select("#addnode-btn").on("click", function() {
     let data = {
         "name": addName.value,
@@ -121,6 +107,12 @@ d3.select("#addnode-btn").on("click", function() {
     softMax();
     addLinks();
     visualize(); 
+});
+
+d3.select('#screenshot-btn').on('click', function() {
+    saveSvgAsPng(document.getElementsByTagName("svg")[0], "plot.png", {
+         scale: 1, backgroundColor: "#FFFFFF" 
+    });
 });
 
 d3.select("#clusterButton").on("click", function () {
@@ -157,32 +149,7 @@ function addLinks() {
 
     graph["links"] = [];
     console.log("addLinks!!");    
-    /* for(let i=0; i<graph["nodes"].length-1; ++i) {
-        for (let j=i+1; j<graph["nodes"].length; ++j) {
-            
-            diff = Math.abs(graph["nodes"][i]["score"] - graph["nodes"][j]["score"]);
-            raiDiff = Math.abs(graph["nodes"][i]["RAI"] - graph["nodes"][j]["RAI"]);
-            
-            edgeWeight = (2.0 / (0.1 + raiDiff));
-            edge1 = {
-                "source": i,
-                "target": j,
-                "value": edgeWeight
-            }
-            graph["links"].push(edge1);
-
-            if (diff < thresh) {
-                for (let k=0; k<=thresh-diff; ++k) {
-                    edge2 = {
-                        "source": j,
-                        "target": i,
-                        "value": edgeWeight
-                    }
-                    graph["links"].push(edge2);
-                }
-            }
-        }
-    } */
+    
 }
 
 function addClusterLinks() {
