@@ -1,9 +1,12 @@
 const fs = require("fs");
 const {dialog} = require("electron").remote
 
-let graph, saveGraph;
+let graph, saveGraph, thresh = 4;
+// form 
+let addName = document.getElementById("add-name");
+let addScore = document.getElementById("add-score");
 
-let width = 960,
+let width = 600,
     height = 500;
 
 let color = d3.scale.category20();
@@ -20,7 +23,7 @@ let svg = d3.select("#graph").append("svg")
 let link, node;
 
 function visualize() {
-
+    
     d3.selectAll("svg > *").remove();
 
     force
@@ -53,6 +56,7 @@ function visualize() {
         node.attr("cx", function (d) { return d.x; })
             .attr("cy", function (d) { return d.y; });
     });
+    console.log("visualized!!");
 }
 
 
@@ -67,8 +71,10 @@ d3.select("#open-btn").on("click", function() {
             graph = JSON.parse(data);
             saveGraph = JSON.parse(JSON.stringify(graph));
             //console.log(graph);
-            softMax();
+            //softMax();
+            addLinks();
             visualize();
+            console.log('hello');
         })
     })
 });
@@ -77,19 +83,44 @@ d3.select("#save-btn").on("click", function() {
     
     if (graph === undefined)
         return;
-
-    dialog.showOpenDialog((filenames) => {
-        if(filenames === undefined) {
-            console.log("No file selected");
-            return;
-        }
-        
-        let json = JSON.stringify(saveGraph);
-        fs.writeFile(filenames[0], json, function(err) {
-            if (err) throw err;
-            console.log("success");
-        });
+    json = JSON.stringify(saveGraph);
+    fs.writeFile('./data.json', json, function (err) {
+        if (err) throw err;
+        //alert("data saved in data.json")
+        console.log('saved');
     });
+});
+
+/* document.getElementById('addnode-btn').addEventListener('click',function() {
+    let data = {
+        "name": addName.value,
+        "score": addScore.value
+    };
+    if (saveGraph === undefined) {
+        saveGraph = {};
+        saveGraph["nodes"] = [];
+        graph = JSON.parse(JSON.stringify(saveGraph));
+    }
+    saveGraph["nodes"].push(data);
+    addLinks();
+    console.log(data);
+}); */
+d3.select("#addnode-btn").on("click", function() {
+    let data = {
+        "name": addName.value,
+        "score": addScore.value
+    };
+    if (saveGraph === undefined) {
+        saveGraph = {};
+        saveGraph["nodes"] = [];
+    }
+    console.log(data);
+
+    saveGraph["nodes"].push(data);
+    graph = JSON.parse(JSON.stringify(saveGraph));
+    softMax();
+    addLinks();
+    visualize(); 
 });
 
 d3.select("#clusterButton").on("click", function () {
@@ -97,21 +128,17 @@ d3.select("#clusterButton").on("click", function () {
     /******************/
     /*  Clustering    */
     /******************/
-    netClustering.cluster(graph.nodes, graph.links);
-
-    svg.selectAll(".node").transition().duration(2000).style("fill", function (d) { return color(d.cluster); });
-});
-
-d3.select("#addButton").on("click", function() {
-    //testing
-
-    graph["nodes"].push({
-        "name": "Nilay",
-        "score": 20
-    });
+    graph = JSON.parse(JSON.stringify(saveGraph));
     softMax();
-    addLinks();
-    console.log(graph["nodes"].length);
+    
+    addClusterLinks(); // removes old links
+    visualize();
+    netClustering.cluster(graph.nodes, graph.links);
+    svg.selectAll(".node")
+       .transition()
+       .duration(2000)
+       .style("fill", function (d) { return color(d.cluster); });
+    
 });
 
 function softMax() {
@@ -122,23 +149,62 @@ function softMax() {
     for (let i = 0; i < graph["nodes"].length; ++i) {
         graph["nodes"][i]["RAI"] = graph["nodes"][i]["score"]/sum;
     }
-    console.log(graph["nodes"][0]);
 }
 
 function addLinks() {
 
-    let edge; 
+    let edge1, edge2, diff, raiDiff, edgeWeight; 
 
     graph["links"] = [];
-    
-    for(let i=0; i<graph["nodes"].length-1; ++i) {
+    console.log("addLinks!!");    
+    /* for(let i=0; i<graph["nodes"].length-1; ++i) {
         for (let j=i+1; j<graph["nodes"].length; ++j) {
-            edge = {
+            
+            diff = Math.abs(graph["nodes"][i]["score"] - graph["nodes"][j]["score"]);
+            raiDiff = Math.abs(graph["nodes"][i]["RAI"] - graph["nodes"][j]["RAI"]);
+            
+            edgeWeight = (2.0 / (0.1 + raiDiff));
+            edge1 = {
                 "source": i,
                 "target": j,
-                "value": (1.0 / (0.5 + Math.abs(graph["nodes"][i]["RAI"] - graph["nodes"][j]["RAI"])))
+                "value": edgeWeight
             }
-            graph["links"].push(edge);
+            graph["links"].push(edge1);
+
+            if (diff < thresh) {
+                for (let k=0; k<=thresh-diff; ++k) {
+                    edge2 = {
+                        "source": j,
+                        "target": i,
+                        "value": edgeWeight
+                    }
+                    graph["links"].push(edge2);
+                }
+            }
+        }
+    } */
+}
+
+function addClusterLinks() {
+    let edge1, edge2, diff, raiDiff, edgeWeight;
+
+    graph["links"] = [];
+
+    for (let i = 0; i < graph["nodes"].length - 1; ++i) {
+        for (let j = i + 1; j < graph["nodes"].length; ++j) {
+
+            diff = Math.abs(graph["nodes"][i]["score"] - graph["nodes"][j]["score"]);
+            raiDiff = Math.abs(graph["nodes"][i]["RAI"] - graph["nodes"][j]["RAI"]);
+
+            edgeWeight = (2.0 / (0.1 + raiDiff));
+            if (diff < thresh) {
+                    edge2 = {
+                        "source": j,
+                        "target": i,
+                        "value": edgeWeight
+                    }
+                    graph["links"].push(edge2);
+            }
         }
     }
 }
