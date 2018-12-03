@@ -4,8 +4,8 @@ let win;
 
 function createWindow() {
     win = new BrowserWindow({
-        width: 1000, 
-        height: 800,
+        width: 950, 
+        height: 600,
         'min-width': 600,
         'accept-first-mouse': true,
         'title-bar-style': 'hidden'
