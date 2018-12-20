@@ -1,7 +1,20 @@
-{"nodes":[{"name":"Nilay","score":20},{"name":"Mudit","score":18},{
-            "name": "Kush",
-            "score": "12"
-        },{
-            "name": "Luv",
-            "score": "10"
-        }]}
+{
+    "nodes":[
+                {
+                    "name":"S1",
+                    "score":[20, 24, 22, 30, 35]
+                },
+                {
+                    "name":"S2",
+                    "score":[21, 22, 26, 30, 32]
+                },
+                {
+                    "name": "S3",
+                    "score": [10, 11, 12, 30, 33]
+                },
+                {
+                    "name": "S4",
+                    "score": [11, 11, 20, 30, 34]
+                }
+            ]
+}
