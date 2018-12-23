@@ -56,7 +56,6 @@ const headers = {
 const dataTable = new DataTable(table, {
     data: headers,
     searchable: false,
-    
 });
 
 
@@ -92,6 +91,9 @@ function init() {
     for(let i=1; i<=5; ++i) {
         scoreField.push(document.getElementById("add-score"+i));
     }
+
+    table.addEventListener("dblclick", tableRemoveClick);
+
     svg = d3.select("#graph").append("svg")
         .attr("width", width)
         .attr("height", height);
@@ -269,10 +271,21 @@ function tableAddClick() {
             "nodes":[]
         }
     }
-    
+
     tableGraph["nodes"].push(newNode);
     syncGraphs();
     dataTable.rows().add(newRow);
+}
+
+function tableRemoveClick(event) {
+    console.log("double click");
+    console.log(event.target.tagName.toLowerCase());
+    if (event.target.tagName.toLowerCase() == 'td') {
+        let idx = event.target.rowIndex;
+        dataTable.rows().remove(event.target.rowIndex);
+        tableGraph["nodes"].splice(idx,1);
+        syncGraphs();
+    }
 }
 
 function clusterBtnClick() {
