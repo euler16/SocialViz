@@ -25,6 +25,7 @@
     "electron-packager": "^12.2.0"
   },
   "dependencies": {
-    "save-svg-as-png": "^1.4.6"
+    "save-svg-as-png": "^1.4.6",
+    "simple-datatables": "^1.7.5"
   }
 }

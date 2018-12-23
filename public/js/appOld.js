@@ -1,141 +1,50 @@
 const fs = require("fs");
-const { dialog } = require("electron").remote
-import { DataTable } from "simple-datatables";
-// variables
-let state = 1; // 0 - data mode 1,2,3,4,5 Time mode
-/**
- * score is an array in saveGraph 
- * graphs[state-1] is the graph to be used.
- * saveGraph[nodes] = tableGraph
- */
-let timeGraphs = [], saveGraph, tableGraph, thresh = 4;
+const {dialog} = require("electron").remote
 
-let width = 600, height = 500;
+let time = 1;
 
-// buttons
-let clusterBtn;
+let graph, saveGraph, thresh = 4;
+// form 
+let addName = document.getElementById("add-name");
+let addScore = document.getElementById("add-score");
+
+let width = 600,
+    height = 500;
 
 let color = d3.scale.category20();
-let svg, link, node;
 
 let force = d3.layout.force()
-              .charge(-120)
-              .linkDistance(30)
-              .size([width, height]);
+    .charge(-120)
+    .linkDistance(30)
+    .size([width, height]);
 
+let svg = d3.select("#graph").append("svg")
+    .attr("width", width)
+    .attr("height", height);
+
+let link, node;
 let dataset = [];
-
-// bar chart
+// BAR
 let w = width;
 let h = 80;
 let barPadding = 1;
-let bars, labels;
 
-let yScale, xScale = d3.scale.ordinal().domain(d3.range(0))
-                       .rangeRoundBands([0, w], 0.05);
+let xScale = d3.scale.ordinal()
+    .domain(d3.range(0))
+    .rangeRoundBands([0, w], 0.05);
+let yScale;
 
-/* panes */
-let graphPane, tablePane;
-/* tab buttons */
-let tabs = [], dataTab;
+let barSvg = d3.select("#barchart")
+    .append("svg")
+    .attr("width", w)
+    .attr("height", h);
 
-/* dataMode elements */
-let table, saveBtn, loadBtn, tableAdd;
-const dataTable = new DataTable("table", {
-    searchable: true,
-    fixedHeight: true,
-    paging: true,
-    columns: [
-        {select: 1, sort: "asc"},
-        {select: [2,3,4,5,6], sortable:true},
-    ]    
-});
-
-function init() {
-
-    let tab;
-    
-    for (let i=1; i<=5; ++i) {
-        tab = document.getElementById("Tab" + i);
-        tab.addEventListener("click",tabClick);
-        tabs.push(tab);
-    }
-
-    graphPane = document.getElementById("graph-pane");
-    tablPane = document.getElementById("table-pane");
-
-    dataTab = document.getElementById("data-tab");
-    dataTab.addEventListener("click",dataTabClick);
-
-    loadBtn = document.getElementById("load-btn");
-    loadBtn.addEventListener("click", loadBtnClick);
-
-    clusterBtn = document.getElementById("cluster-btn");
-    clusterBtn.addEventListener("click", clusterBtnClick);
-
-    svg = d3.select("#graph").append("svg")
-        .attr("width", width)
-        .attr("height", height);
-    
-    state = 0;
-    setupDataMode();
-}
-
-function setupTimeMode() {
-    graphPane.classList.remove("hidden");
-    tablePane.classList.add("hidden");
-}
-
-function setupDataMode() {
-    graphPane.classList.add("hidden");
-    tablePane.classList.remove("hidden");
-}
-
-function tabClick() {
-    /* event handler for tab clicks */
-    
-    id = parseInt(event.srcElement.id.slice(-1));
-    if (state === 0) {/* experimental */
-
-        dataTab.className = "tab-item";
-        setupTimeMode();
-    } else {
-        tabs[state - 1].className = "tab-item"; // switch off the previous
-    }
-    tabs[id - 1].className = "tab-item active";
-    state = id; 
-    console.log("tab click working " + id + " " + state);
-    /* visualization code */
-}
-
-function dataTabClick() {
-    /* event handler for data tab */
-    console.log("data tab");
-    if (state !== 0)
-        setupDataMode();
-
-    tabs[state - 1].className = "tab-item";
-    dataTab.className = "tab-item active";
-    state = 0;
-}
-
-/**
- *  synchronize the three graphs
- * 1. timeGraph : an array of graphs
- * 2. saveGraph : the representation to save
- * 3. tableGraph : temporary representation for table 
- */
-
-function syncGraphs() {
-    
-}
+let bars, labels ;
 
 function visualize() {
-
-    if (state == 0) // DataMode
-        return; 
-
+    
     d3.selectAll("svg > *").remove();
+
     force
         .nodes(graph.nodes)
         .links(graph.links)
@@ -156,7 +65,7 @@ function visualize() {
 
     node.append("title")
         .text(function (d) { return d.name; });
-
+        
     force.on("tick", function () {
         link.attr("x1", function (d) { return d.source.x; })
             .attr("y1", function (d) { return d.source.y; })
@@ -170,30 +79,28 @@ function visualize() {
     console.log("visualized!!");
 }
 
-// event handlers
-function loadBtnClick() {
-    dialog.showOpenDialog((filenames) => {
-        if (filenames === undefined) {
+
+d3.select("#open-btn").on("click", function() {
+    dialog.showOpenDialog((filenames)=> {
+        if(filenames === undefined) {
             console.log("No file selected");
             return;
         }
-        fs.readFile(filenames[0], function (err, data) {
+        fs.readFile(filenames[0], function(err, data) {
             if (err) throw err;
-            
             graph = JSON.parse(data);
             saveGraph = JSON.parse(JSON.stringify(graph));
-            
             //console.log(graph);
-            //softMax();
-            //addLinks();
-            //visualize();
-            //console.log('hello');
+            softMax();
+            addLinks();
+            visualize();
+            console.log('hello');
         })
     })
-}
+});
 
-function saveBtnClick() {
-
+d3.select("#save-btn").on("click", function() {
+    
     if (graph === undefined)
         return;
     json = JSON.stringify(saveGraph);
@@ -202,44 +109,69 @@ function saveBtnClick() {
         //alert("data saved in data.json")
         console.log('saved');
     });
-}
+});
 
-function clusterBtnClick() {
+d3.select("#addnode-btn").on("click", function() {
+    let data = {
+        "name": addName.value,
+        "score": addScore.value
+    };
+    if (saveGraph === undefined) {
+        saveGraph = {};
+        saveGraph["nodes"] = [];
+    }
+    console.log(data);
 
-    // need to change this to accomodate different times
-
+    saveGraph["nodes"].push(data);
     graph = JSON.parse(JSON.stringify(saveGraph));
     softMax();
+    addLinks();
+    visualize(); 
+});
 
+d3.select('#screenshot-btn').on('click', function() {
+    saveSvgAsPng(document.getElementsByTagName("svg")[0], "plot.png", {
+         scale: 1, backgroundColor: "#FFFFFF" 
+    });
+});
+
+d3.select("#clusterButton").on("click", function () {
+
+    /******************/
+    /*  Clustering    */
+    /******************/
+    graph = JSON.parse(JSON.stringify(saveGraph));
+    softMax();
+    
     addClusterLinks(); // removes old links
     visualize();
     netClustering.cluster(graph.nodes, graph.links);
     svg.selectAll(".node")
-        .transition()
-        .duration(2000)
-        .style("fill", function (d) { return color(d.cluster); });
-}
+       .transition()
+       .duration(2000)
+       .style("fill", function (d) { return color(d.cluster); });
+    
+});
 
-// auxialiary function
 function softMax() {
     let sum = 0.0;
     dataset = [];
-    for (let i = 0; i < graph["nodes"].length; ++i) {
-        sum += (Math.exp(graph["nodes"][i]["score"] / 100));
+    for(let i=0;i<graph["nodes"].length;++i) {
+        sum += (Math.exp(graph["nodes"][i]["score"]/100));
     }
     for (let i = 0; i < graph["nodes"].length; ++i) {
-        graph["nodes"][i]["RAI"] = (Math.exp(graph["nodes"][i]["score"] / 100.0)) / sum;
+        graph["nodes"][i]["RAI"] = (Math.exp(graph["nodes"][i]["score"]/100.0))/sum;
         dataset.push(Number(graph["nodes"][i]["RAI"].toFixed(3)));
     }
 }
 
 function addLinks() {
 
-    let edge1, edge2, diff, raiDiff, edgeWeight;
+    let edge1, edge2, diff, raiDiff, edgeWeight; 
 
     graph["links"] = [];
-    console.log("addLinks!!");
-
+    console.log("addLinks!!");    
+    
 }
 
 function addClusterLinks() {
@@ -255,16 +187,17 @@ function addClusterLinks() {
 
             edgeWeight = (2.0 / (0.1 + raiDiff));
             if (diff < thresh) {
-                edge2 = {
-                    "source": j,
-                    "target": i,
-                    "value": edgeWeight
-                }
-                graph["links"].push(edge2);
+                    edge2 = {
+                        "source": j,
+                        "target": i,
+                        "value": edgeWeight
+                    }
+                    graph["links"].push(edge2);
             }
         }
     }
 }
+
 
 
 // Visualization attributes
@@ -305,8 +238,8 @@ function barViz() {
             var xPos, yPos;
 
             //Get this bar's x/y values, then augment for the tooltip
-            xPos = 110 + parseFloat(d3.select(this).attr("x")) + xScale.rangeBand() / 2;
-            yPos = 400 + parseFloat(d3.select(this).attr("y")) / 2 + h / 2;
+            xPos = 110+parseFloat(d3.select(this).attr("x")) + xScale.rangeBand() / 2;
+            yPos = 400+parseFloat(d3.select(this).attr("y")) / 2 + h / 2;
 
             d3.select('#bartooltip')
                 .style('left', xPos + 'px')
@@ -378,12 +311,10 @@ var sortBars = function () {
         });
 };
 
-function sortCallBack(a, b, order) {
+var sortCallback = function (a, b, order) {
     if (order) {
         return d3.ascending(a["RAI"], b["RAI"]);
     } else {
         return d3.descending(a["RAI"], b["RAI"]);
     }
 };
-
-init();
