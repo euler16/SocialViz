@@ -127,7 +127,14 @@ function dataTabClick() {
  */
 
 function syncGraphs() {
-    
+    /* writing this is the key */
+    saveGraph = JSON.parse(JSON.stringify(tableGraph));
+
+    for (let s=1; s<=5; ++s) {
+        timeGraphs[s] = JSON.parse(JSON.stringify(saveGraph));
+        softMax(s);
+        addClusterLinks(s);
+    }
 }
 
 function visualize() {
@@ -180,12 +187,9 @@ function loadBtnClick() {
         fs.readFile(filenames[0], function (err, data) {
             if (err) throw err;
             
-            graph = JSON.parse(data);
-            saveGraph = JSON.parse(JSON.stringify(graph));
+            tableGraph = JSON.parse(JSON.stringify(data));
+            syncGraphs();
             
-            //console.log(graph);
-            //softMax();
-            //addLinks();
             //visualize();
             //console.log('hello');
         })
@@ -221,15 +225,16 @@ function clusterBtnClick() {
 }
 
 // auxialiary function
-function softMax() {
+function softMax(state) {
     let sum = 0.0;
     dataset = [];
-    for (let i = 0; i < graph["nodes"].length; ++i) {
-        sum += (Math.exp(graph["nodes"][i]["score"] / 100));
+    let idx = state-1;
+    for (let i = 0; i < timeGraphs[idx]["nodes"].length; ++i) {
+        sum += (Math.exp(timeGraphs[idx]["nodes"][i]["score"] / 100));
     }
-    for (let i = 0; i < graph["nodes"].length; ++i) {
-        graph["nodes"][i]["RAI"] = (Math.exp(graph["nodes"][i]["score"] / 100.0)) / sum;
-        dataset.push(Number(graph["nodes"][i]["RAI"].toFixed(3)));
+    for (let i = 0; i < timeGraphs[idx]["nodes"].length; ++i) {
+        timeGraphs[idx]["nodes"][i]["RAI"] = (Math.exp(timeGraphs[idx]["nodes"][i]["score"] / 100.0)) / sum;
+        dataset.push(Number(timeGraphs[idx]["nodes"][i]["RAI"].toFixed(3)));
     }
 }
 
