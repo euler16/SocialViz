@@ -1,14 +1,14 @@
 const fs = require("fs");
-const { dialog } = require("electron").remote
-import { DataTable } from "simple-datatables";
+const { dialog, app } = require("electron").remote
+const { DataTable } = require("simple-datatables");
 // variables
 let state = 1; // 0 - data mode 1,2,3,4,5 Time mode
 /**
  * score is an array in saveGraph 
- * graphs[state-1] is the graph to be used.
+ * timeGraphs[state-1] is the graph to be used.
  * saveGraph[nodes] = tableGraph
  */
-let timeGraphs = [], saveGraph, tableGraph, thresh = 4;
+let timeGraphs = [], saveGraph, tableGraph, thresh = 10;
 
 let width = 600, height = 500;
 
@@ -19,9 +19,9 @@ let color = d3.scale.category20();
 let svg, link, node;
 
 let force = d3.layout.force()
-              .charge(-120)
-              .linkDistance(30)
-              .size([width, height]);
+    .charge(-120)
+    .linkDistance(30)
+    .size([width, height]);
 
 let dataset = [];
 
@@ -32,7 +32,7 @@ let barPadding = 1;
 let bars, labels;
 
 let yScale, xScale = d3.scale.ordinal().domain(d3.range(0))
-                       .rangeRoundBands([0, w], 0.05);
+    .rangeRoundBands([0, w], 0.05);
 
 /* panes */
 let graphPane, tablePane;
@@ -40,43 +40,62 @@ let graphPane, tablePane;
 let tabs = [], dataTab;
 
 /* dataMode elements */
-let table, saveBtn, loadBtn, tableAdd;
-const dataTable = new DataTable("table", {
-    searchable: true,
-    fixedHeight: true,
-    paging: true,
-    columns: [
-        {select: 1, sort: "asc"},
-        {select: [2,3,4,5,6], sortable:true},
-    ]    
+let saveBtn, loadBtn, tableAdd;
+let nameField, scoreField = [];
+let table = document.querySelector("#data-table");
+const headers = {
+    "headings": [
+        "name",
+        "score1",
+        "score2",
+        "score3",
+        "score4",
+        "score5"
+    ]
+}
+const dataTable = new DataTable(table, {
+    data: headers,
+    searchable: false,
+    
 });
+
 
 function init() {
 
     let tab;
-    
-    for (let i=1; i<=5; ++i) {
+
+    for (let i = 1; i <= 5; ++i) {
         tab = document.getElementById("Tab" + i);
-        tab.addEventListener("click",tabClick);
+        tab.addEventListener("click", tabClick);
         tabs.push(tab);
     }
 
     graphPane = document.getElementById("graph-pane");
-    tablPane = document.getElementById("table-pane");
+    tablePane = document.getElementById("table-pane");
 
     dataTab = document.getElementById("data-tab");
-    dataTab.addEventListener("click",dataTabClick);
+    dataTab.addEventListener("click", dataTabClick);
 
     loadBtn = document.getElementById("load-btn");
     loadBtn.addEventListener("click", loadBtnClick);
 
-    clusterBtn = document.getElementById("cluster-btn");
-    clusterBtn.addEventListener("click", clusterBtnClick);
+    saveBtn = document.getElementById("save-btn");
+    saveBtn.addEventListener("click", saveBtnClick);
 
+    //clusterBtn = document.getElementById("cluster-btn");
+    //clusterBtn.addEventListener("click", clusterBtnClick);
+
+    tableAdd = document.getElementById("add-btn");
+    tableAdd.addEventListener("click", tableAddClick);
+
+    nameField = document.getElementById("add-name");
+    for(let i=1; i<=5; ++i) {
+        scoreField.push(document.getElementById("add-score"+i));
+    }
     svg = d3.select("#graph").append("svg")
         .attr("width", width)
         .attr("height", height);
-    
+
     state = 0;
     setupDataMode();
 }
@@ -95,7 +114,7 @@ function setupDataMode() {
 function visualize() {
 
     if (state == 0) // DataMode
-        return; 
+        return;
 
     let q = state - 1;
     d3.selectAll("svg > *").remove();
@@ -165,39 +184,95 @@ function dataTabClick() {
 
 
 function loadBtnClick() {
+    console.log("loadBtn click!!");
+
     dialog.showOpenDialog((filenames) => {
+
         if (filenames === undefined) {
             console.log("No file selected");
             return;
         }
         fs.readFile(filenames[0], function (err, data) {
             if (err) throw err;
-            
-            tableGraph = JSON.parse(JSON.stringify(data));
+            dataTable.destroy();
+            dataTable.init({
+                data: headers,
+                searchable: false
+            });
+            tableGraph = JSON.parse(data);
+
             syncGraphs();
-            dataTable.insert(tableGraph["nodes"]);
+            console.log(tableGraph["nodes"]);
+            //dataTable.rows().add(["cell","bell","dell","kell","jell","rell"]);
+            let newRows = [];
+            for (let i=0; i<tableGraph["nodes"].length; ++i) {
+                let r = [
+                    tableGraph["nodes"][i]["name"],
+                    tableGraph["nodes"][i]["score1"].toString(),
+                    tableGraph["nodes"][i]["score2"].toString(),
+                    tableGraph["nodes"][i]["score3"].toString(),
+                    tableGraph["nodes"][i]["score4"].toString(),
+                    tableGraph["nodes"][i]["score5"].toString()
+                ];
+                //dataTable.rows().add(r);
+                newRows.push(r);
+            }
+            dataTable.rows().add(newRows)
         });
     });
 }
 
-/**
- * TODO 
- */
-function exportBtnClick() {
-    let p = document.getElementById("export");
-    p.innerHTML = JSON.stringify(saveGraph);
-}
-
 function saveBtnClick() {
 
-    if (graph === undefined)
+    if (saveGraph === undefined)
         return;
-    json = JSON.stringify(saveGraph);
-    fs.writeFile('./data.json', json, function (err) {
-        if (err) throw err;
-        //alert("data saved in data.json")
-        console.log('saved');
+    syncGraphs();
+    console.log('saveBtn click');
+    const options = {
+        defaultPath: app.getAppPath() + '/data.json',
+        securityScopedBookmarks: true
+    }
+    dialog.showSaveDialog(null,options, function(filename) {
+        if(filename === undefined) {
+            console.log("no file selected");
+            return;
+        }
+        json = JSON.stringify(saveGraph);
+        fs.writeFile(filename,json, function(err) {
+            if(err) throw err;
+            console.log('saved');
+        })
     });
+}
+
+function tableAddClick() {
+    console.log("add button clicked");
+    let newNode = {
+        "name": nameField.value,
+        "score1": scoreField[0].value,
+        "score2": scoreField[1].value,
+        "score3": scoreField[2].value,
+        "score4": scoreField[3].value,
+        "score5": scoreField[4].value,
+    }
+    let newRow = [
+        nameField.value,
+        scoreField[0].value,
+        scoreField[1].value,
+        scoreField[2].value,
+        scoreField[3].value,
+        scoreField[4].value
+    ]
+    console.log(newNode);
+    if(tableGraph === undefined) {
+        tableGraph = {
+            "nodes":[]
+        }
+    }
+    
+    tableGraph["nodes"].push(newNode);
+    syncGraphs();
+    dataTable.rows().add(newRow);
 }
 
 function clusterBtnClick() {
@@ -225,7 +300,8 @@ function clusterBtnClick() {
 function softMax(state) {
     let sum = 0.0;
     dataset = [];
-    let idx = state-1;
+    let idx = state - 1;
+    //console.log(timeGraphs);
     for (let i = 0; i < timeGraphs[idx]["nodes"].length; ++i) {
         sum += (Math.exp(timeGraphs[idx]["nodes"][i]["score"] / 100));
     }
@@ -245,9 +321,27 @@ function softMax(state) {
 function syncGraphs() {
     /* writing this is the key */
     saveGraph = JSON.parse(JSON.stringify(tableGraph));
-
+    console.log(saveGraph);
+    let t;
+    timeGraphs = [];
+    for (let k=0; k<5; ++k) {
+        timeGraphs.push({
+            "nodes": [],
+            "links": []
+        });
+    }
+    
+    let n = saveGraph["nodes"].length;
+    let hash;
     for (let s = 1; s <= 5; ++s) {
-        timeGraphs[s] = JSON.parse(JSON.stringify(saveGraph));
+        hash = "score"+s;
+        for (let j=0; j<n; ++j) {
+            timeGraphs[s-1]["nodes"].push({
+                "name": saveGraph["nodes"][j]["name"],
+                "score": saveGraph["nodes"][j][hash]
+            });
+        }
+
         softMax(s);
         addClusterLinks(s);
     }
@@ -266,16 +360,24 @@ function addLinks() {
 
 }
 
-function addClusterLinks() {
+/**
+ * 
+ * @param {*} state  : adds edges for visualization 
+ * testing
+ *
+ */
+
+function addClusterLinks(state) {
     let edge1, edge2, diff, raiDiff, edgeWeight;
+    let idx = state - 1;
 
-    graph["links"] = [];
+    timeGraphs[idx]["links"] = [];
 
-    for (let i = 0; i < graph["nodes"].length - 1; ++i) {
-        for (let j = i + 1; j < graph["nodes"].length; ++j) {
+    for (let i = 0; i < timeGraphs[idx]["nodes"].length - 1; ++i) {
+        for (let j = i + 1; j < timeGraphs[idx]["nodes"].length; ++j) {
 
-            diff = Math.abs(graph["nodes"][i]["score"] - graph["nodes"][j]["score"]);
-            raiDiff = Math.abs(graph["nodes"][i]["RAI"] - graph["nodes"][j]["RAI"]);
+            diff = Math.abs(timeGraphs[idx]["nodes"][i]["score"] - timeGraphs[idx]["nodes"][j]["score"]);
+            raiDiff = Math.abs(timeGraphs[idx]["nodes"][i]["RAI"] - timeGraphs[idx]["nodes"][j]["RAI"]);
 
             edgeWeight = (2.0 / (0.1 + raiDiff));
             if (diff < thresh) {
@@ -284,7 +386,8 @@ function addClusterLinks() {
                     "target": i,
                     "value": edgeWeight
                 }
-                graph["links"].push(edge2);
+                timeGraphs[idx]["links"].push(edge2);
+                //console.log("edge pushed: " + idx + " " + timeGraphs[idx]["links"]);
             }
         }
     }

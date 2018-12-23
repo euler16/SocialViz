@@ -61,7 +61,10 @@ svg rect:hover {
   cursor: pointer;
   position: absolute;
 }
-
+a {
+    text-decoration: none !important;
+    color: rgb(96,96,96);
+}
 
 </style>
 <link type="text/css" rel="stylesheet" href="css/photon.min.css" media="screen,projection" />
@@ -72,7 +75,7 @@ svg rect:hover {
       <header class="toolbar toolbar-header">
         <h1 class="title">SocialViz</h1>
       
-        <div class="toolbar-actions">
+        <!-- <div class="toolbar-actions">
           <div class="btn-group">
             <button class="btn btn-large btn-default">
               <span class="icon icon-home"></span>
@@ -81,7 +84,7 @@ svg rect:hover {
               <span class="icon icon-folder icon-text"></span>
                Open
             </button>
-            <button id="save-btn" class="btn btn-large btn-default">
+            <button id="save-btn0" class="btn btn-large btn-default">
               <span class="icon icon-floppy icon-text"></span>
                Save Data
             </button>
@@ -93,7 +96,7 @@ svg rect:hover {
         <button id="cluster-btn" class="btn btn-large btn-default">
           <span class="icon icon-flow-tree icon-text"></span>
           Cluster
-        </button>
+        </button> -->
       </header>
 
       <!-- TABS -->
@@ -131,15 +134,26 @@ svg rect:hover {
           <div class="pane" style="text-align:center;" id="table-pane">
           <div id="table" class="table-editable">
             <!-- <span class="table-add icon icon-user-add"></span> -->
-            <table class="table table-striped">
+            <table class="table table-striped" id="data-table">
               
             </table>
             
           </div>
-          <button id="export-btn" class="btn btn-mini btn-default">Export Data</button>
-          <p id="export"></p>
-          <button id="load-btn" class="btn btn-mini btn-default">Load Data</button>
-          <p id="export"></p>
+          <button id="load-btn" class="btn btn-default">Load Data</button>
+          <button id="save-btn" class="btn btn-primary">Save</button><br><br>
+          <form id="add-form">
+            <div class="form-group">
+
+              <input id="add-name" type="text" name="Name" style="width: 90px;" class="form-control" placeholder="Name">
+              <input id="add-score1" type="text" name="Score1" style="width: 70px;" class="form-control" placeholder="Score1">
+              <input id="add-score2" type="text" name="Score1" style="width: 70px;" class="form-control" placeholder="Score2">
+              <input id="add-score3" type="text" name="Score1" style="width: 70px;" class="form-control" placeholder="Score3">
+              <input id="add-score4" type="text" name="Score1" style="width: 70px;" class="form-control" placeholder="Score4">
+              <input id="add-score5" type="text" name="Score1" style="width: 70px;" class="form-control" placeholder="Score5">
+              <button id="add-btn" class="btn btn-primary" type="button"> Add </button>
+            </div>
+          </form>
+
         </div>
           
 
