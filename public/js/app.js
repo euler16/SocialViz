@@ -91,71 +91,27 @@ function setupDataMode() {
     tablePane.classList.remove("hidden");
 }
 
-function tabClick() {
-    /* event handler for tab clicks */
-    
-    id = parseInt(event.srcElement.id.slice(-1));
-    if (state === 0) {/* experimental */
-
-        dataTab.className = "tab-item";
-        setupTimeMode();
-    } else {
-        tabs[state - 1].className = "tab-item"; // switch off the previous
-    }
-    tabs[id - 1].className = "tab-item active";
-    state = id; 
-    console.log("tab click working " + id + " " + state);
-    /* visualization code */
-}
-
-function dataTabClick() {
-    /* event handler for data tab */
-    console.log("data tab");
-    if (state !== 0)
-        setupDataMode();
-
-    tabs[state - 1].className = "tab-item";
-    dataTab.className = "tab-item active";
-    state = 0;
-}
-
-/**
- *  synchronize the three graphs
- * 1. timeGraph : an array of graphs
- * 2. saveGraph : the representation to save
- * 3. tableGraph : temporary representation for table 
- */
-
-function syncGraphs() {
-    /* writing this is the key */
-    saveGraph = JSON.parse(JSON.stringify(tableGraph));
-
-    for (let s=1; s<=5; ++s) {
-        timeGraphs[s] = JSON.parse(JSON.stringify(saveGraph));
-        softMax(s);
-        addClusterLinks(s);
-    }
-}
 
 function visualize() {
 
     if (state == 0) // DataMode
         return; 
 
+    let q = state - 1;
     d3.selectAll("svg > *").remove();
     force
-        .nodes(graph.nodes)
-        .links(graph.links)
+        .nodes(timeGraphs[q].nodes)
+        .links(timeGraphs[q].links)
         .start();
 
     link = svg.selectAll(".link")
-        .data(graph.links)
+        .data(timeGraphs[q].links)
         .enter().append("line")
         .attr("class", "link")
         .style("stroke-width", function (d) { return Math.sqrt(d.value); });
 
     node = svg.selectAll(".node")
-        .data(graph.nodes)
+        .data(timeGraphs[q].nodes)
         .enter().append("circle")
         .attr("class", "node")
         .attr("r", 5)
@@ -178,6 +134,36 @@ function visualize() {
 }
 
 // event handlers
+
+function tabClick() {
+    /* event handler for tab clicks */
+
+    id = parseInt(event.srcElement.id.slice(-1));
+    if (state === 0) {/* experimental */
+
+        dataTab.className = "tab-item";
+        setupTimeMode();
+    } else {
+        tabs[state - 1].className = "tab-item"; // switch off the previous
+    }
+    tabs[id - 1].className = "tab-item active";
+    state = id;
+    console.log("tab click working " + id + " " + state);
+    /* visualization code */
+}
+
+function dataTabClick() {
+    /* event handler for data tab */
+    console.log("data tab");
+    if (state !== 0)
+        setupDataMode();
+
+    tabs[state - 1].className = "tab-item";
+    dataTab.className = "tab-item active";
+    state = 0;
+}
+
+
 function loadBtnClick() {
     dialog.showOpenDialog((filenames) => {
         if (filenames === undefined) {
@@ -189,11 +175,17 @@ function loadBtnClick() {
             
             tableGraph = JSON.parse(JSON.stringify(data));
             syncGraphs();
-            
-            //visualize();
-            //console.log('hello');
-        })
-    })
+            dataTable.insert(tableGraph["nodes"]);
+        });
+    });
+}
+
+/**
+ * TODO 
+ */
+function exportBtnClick() {
+    let p = document.getElementById("export");
+    p.innerHTML = JSON.stringify(saveGraph);
 }
 
 function saveBtnClick() {
@@ -225,6 +217,11 @@ function clusterBtnClick() {
 }
 
 // auxialiary function
+
+/**
+ * 
+ * @param {*} state : necessary as softmax is part of a for loop for every state
+ */
 function softMax(state) {
     let sum = 0.0;
     dataset = [];
@@ -237,6 +234,28 @@ function softMax(state) {
         dataset.push(Number(timeGraphs[idx]["nodes"][i]["RAI"].toFixed(3)));
     }
 }
+
+/**
+ *  synchronize the three graphs
+ * 1. timeGraph : an array of graphs
+ * 2. saveGraph : the representation to save
+ * 3. tableGraph : temporary representation for table 
+ */
+
+function syncGraphs() {
+    /* writing this is the key */
+    saveGraph = JSON.parse(JSON.stringify(tableGraph));
+
+    for (let s = 1; s <= 5; ++s) {
+        timeGraphs[s] = JSON.parse(JSON.stringify(saveGraph));
+        softMax(s);
+        addClusterLinks(s);
+    }
+}
+
+/**
+ * USELESS to be removed!
+ */
 
 function addLinks() {
 
