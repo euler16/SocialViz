@@ -1,20 +1,19 @@
 const fs = require("fs");
 const { dialog } = require("electron").remote
-
-const MAIN = document.getElementById("main-content");
-
+import { DataTable } from "simple-datatables";
 // variables
 let state = 1; // 0 - data mode 1,2,3,4,5 Time mode
 /**
  * score is an array in saveGraph 
  * graphs[state-1] is the graph to be used.
+ * saveGraph[nodes] = tableGraph
  */
-let graphs = [], saveGraph, thresh = 4;
+let timeGraphs = [], saveGraph, tableGraph, thresh = 4;
 
 let width = 600, height = 500;
 
 // buttons
-let loadBtn, saveBtn, clusterBtn;
+let clusterBtn;
 
 let color = d3.scale.category20();
 let svg, link, node;
@@ -35,42 +34,100 @@ let bars, labels;
 let yScale, xScale = d3.scale.ordinal().domain(d3.range(0))
                        .rangeRoundBands([0, w], 0.05);
 
+/* panes */
+let graphPane, tablePane;
 /* tab buttons */
-let tabs = [];
+let tabs = [], dataTab;
+
+/* dataMode elements */
+let table, saveBtn, loadBtn, tableAdd;
+const dataTable = new DataTable("table", {
+    searchable: true,
+    fixedHeight: true,
+    paging: true,
+    columns: [
+        {select: 1, sort: "asc"},
+        {select: [2,3,4,5,6], sortable:true},
+    ]    
+});
 
 function init() {
+
+    let tab;
     
+    for (let i=1; i<=5; ++i) {
+        tab = document.getElementById("Tab" + i);
+        tab.addEventListener("click",tabClick);
+        tabs.push(tab);
+    }
+
+    graphPane = document.getElementById("graph-pane");
+    tablPane = document.getElementById("table-pane");
+
+    dataTab = document.getElementById("data-tab");
+    dataTab.addEventListener("click",dataTabClick);
+
     loadBtn = document.getElementById("load-btn");
     loadBtn.addEventListener("click", loadBtnClick);
 
     clusterBtn = document.getElementById("cluster-btn");
     clusterBtn.addEventListener("click", clusterBtnClick);
+
+    svg = d3.select("#graph").append("svg")
+        .attr("width", width)
+        .attr("height", height);
     
-    setupTimeMode();
+    state = 0;
+    setupDataMode();
 }
 
 function setupTimeMode() {
-    MAIN.innerHTML = '<div class="pane" style="text - align: center; ">  \
-            <div id="graph"> \
-            </div> \
-                <div id="barchart" > \
-                    <div id="bartooltip" class="hidden"> \
-                        <p><span id="value"></span></p> \
-                    </div> \
-                </div> \
-          </div >';
-
-    svg = d3.select("#graph").append("svg")
-            .attr("width", width)
-            .attr("height", height);
-            
-    /* testing */
-
+    graphPane.classList.remove("hidden");
+    tablePane.classList.add("hidden");
 }
 
 function setupDataMode() {
-    /* experimental */
-    MAIN.innerHTML = '';
+    graphPane.classList.add("hidden");
+    tablePane.classList.remove("hidden");
+}
+
+function tabClick() {
+    /* event handler for tab clicks */
+    
+    id = parseInt(event.srcElement.id.slice(-1));
+    if (state === 0) {/* experimental */
+
+        dataTab.className = "tab-item";
+        setupTimeMode();
+    } else {
+        tabs[state - 1].className = "tab-item"; // switch off the previous
+    }
+    tabs[id - 1].className = "tab-item active";
+    state = id; 
+    console.log("tab click working " + id + " " + state);
+    /* visualization code */
+}
+
+function dataTabClick() {
+    /* event handler for data tab */
+    console.log("data tab");
+    if (state !== 0)
+        setupDataMode();
+
+    tabs[state - 1].className = "tab-item";
+    dataTab.className = "tab-item active";
+    state = 0;
+}
+
+/**
+ *  synchronize the three graphs
+ * 1. timeGraph : an array of graphs
+ * 2. saveGraph : the representation to save
+ * 3. tableGraph : temporary representation for table 
+ */
+
+function syncGraphs() {
+    
 }
 
 function visualize() {
@@ -122,13 +179,15 @@ function loadBtnClick() {
         }
         fs.readFile(filenames[0], function (err, data) {
             if (err) throw err;
+            
             graph = JSON.parse(data);
             saveGraph = JSON.parse(JSON.stringify(graph));
+            
             //console.log(graph);
-            softMax();
-            addLinks();
-            visualize();
-            console.log('hello');
+            //softMax();
+            //addLinks();
+            //visualize();
+            //console.log('hello');
         })
     })
 }

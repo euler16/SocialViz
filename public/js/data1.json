@@ -2,19 +2,35 @@
     "nodes":[
                 {
                     "name":"S1",
-                    "score":[20, 24, 22, 30, 35]
+                    "score1":20,
+                    "score2":24,
+                    "score3":22,
+                    "score4":30,
+                    "score5":35
                 },
                 {
                     "name":"S2",
-                    "score":[21, 22, 26, 30, 32]
+                    "score1": 20,
+                    "score2": 24,
+                    "score3": 22,
+                    "score4": 30,
+                    "score5": 35
                 },
                 {
                     "name": "S3",
-                    "score": [10, 11, 12, 30, 33]
+                    "score1": 20,
+                    "score2": 24,
+                    "score3": 22,
+                    "score4": 30,
+                    "score5": 35
                 },
                 {
                     "name": "S4",
-                    "score": [11, 11, 20, 30, 34]
+                    "score1": 20,
+                    "score2": 24,
+                    "score3": 22,
+                    "score4": 30,
+                    "score5": 35
                 }
             ]
 }

@@ -39,6 +39,30 @@ svg rect:hover {
 #bartooltip p {
   margin: 0 1em;
 }
+
+/* table css */
+.table-editable {
+  position: relative;
+}
+.table-editable .glyphicon {
+  font-size: 20px;
+}
+
+.table-remove {
+  cursor: pointer;
+}
+
+
+.table-up:hover, .table-down:hover {
+  color: #00f;
+}
+
+.table-add {
+  cursor: pointer;
+  position: absolute;
+}
+
+
 </style>
 <link type="text/css" rel="stylesheet" href="css/photon.min.css" media="screen,projection" />
 
@@ -74,29 +98,29 @@ svg rect:hover {
 
       <!-- TABS -->
       <div class="tab-group">
-        <div class="tab-item active" id="Tab1">
+        <div class="tab-item active" id="data-tab">
+          <span class="icon"></span>
+          View Data
+        </div>
+        <div class="tab-item" id="Tab1">
           <span class="icon"></span>
           Time Period - 1
         </div>
         <div class="tab-item" id="Tab2">
-          <span class="icon icon-cancel icon-close-tab"></span>
+          <span class="icon"></span>
           Time Period - 2
         </div>
         <div class="tab-item" id="Tab3">
-          <span class="icon icon-cancel icon-close-tab"></span>
+          <span class="icon"></span>
           Time Period - 3
         </div>
         <div class="tab-item" id="Tab4">
-          <span class="icon icon-cancel icon-close-tab"></span>
+          <span class="icon"></span>
           Time Period - 4
         </div>
         <div class="tab-item" id="Tab5">
-          <span class="icon icon-cancel icon-close-tab"></span>
+          <span class="icon"></span>
           Time Period - 5
-        </div>
-        <div class="tab-item" id="Tab5">
-          <span class="icon icon-cancel icon-close-tab"></span>
-          View Data
         </div>
       </div>
 
@@ -104,12 +128,26 @@ svg rect:hover {
       <div class="window-content">
         <div class="pane-group" id=main-content>
 
+          <div class="pane" style="text-align:center;" id="table-pane">
+          <div id="table" class="table-editable">
+            <span class="table-add icon icon-user-add"></span>
+            <table class="table table-striped">
+              
+            </table>
+            
+          </div>
+          <button id="export-btn" class="btn btn-mini btn-default">Export Data</button>
+          <p id="export"></p>
+          <button id="load-btn" class="btn btn-mini btn-default">Load Data</button>
+          <p id="export"></p>
+        </div>
+          
+
+
           <!-- graph and bar chart -->
-          <div class="pane" style="text-align:center;">  
-            <!-- graph -->
+          <div class="pane hidden" style="text-align:center;" id="graph-pane">  
             <div id="graph">
             </div>
-            <!-- bar chart -->
             <div id="barchart" >
               <div id="bartooltip" class="hidden">
                 <p><span id="value"></span></p>
