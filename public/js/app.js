@@ -1,6 +1,7 @@
 const fs = require("fs");
 const { dialog, app } = require("electron").remote
 const { DataTable } = require("simple-datatables");
+const Chart = require("chart.js");
 // variables
 let state = 1; // 0 - data mode 1,2,3,4,5 Time mode
 /**
@@ -8,15 +9,38 @@ let state = 1; // 0 - data mode 1,2,3,4,5 Time mode
  * timeGraphs[state-1] is the graph to be used.
  * saveGraph[nodes] = tableGraph
  */
-let timeGraphs = [], saveGraph, tableGraph, thresh = 10;
+let timeGraphs = [], saveGraph, tableGraph, thresh = 4;
 
-let width = 600, height = 500;
+let width = 300, height = 300;
+
+
+const chartColors = {
+    red: 'rgb(255, 99, 132)',
+    orange: 'rgb(255, 159, 64)',
+    yellow: 'rgb(255, 205, 86)',
+    green: 'rgb(75, 192, 192)',
+    blue: 'rgb(54, 162, 235)',
+    purple: 'rgb(153, 102, 255)',
+    grey: 'rgb(201, 203, 207)'
+};
+const COLORS = [
+    '#4dc9f6',
+    '#f67019',
+    '#f53794',
+    '#537bc4',
+    '#acc236',
+    '#166a8f',
+    '#00a950',
+    '#58595b',
+    '#8549ba'
+];
+
 
 // buttons
-let clusterBtn;
+let clusterBtn, screenBtn;
 
 let color = d3.scale.category20();
-let svg, link, node;
+let svg, link, node, ctx, chart;
 
 let force = d3.layout.force()
     .charge(-120)
@@ -40,7 +64,7 @@ let graphPane, tablePane;
 let tabs = [], dataTab;
 
 /* dataMode elements */
-let saveBtn, loadBtn, tableAdd;
+let saveBtn, loadBtn, tableAdd, dataChanged = false;
 let nameField, scoreField = [];
 let table = document.querySelector("#data-table");
 const headers = {
@@ -81,19 +105,21 @@ function init() {
     saveBtn = document.getElementById("save-btn");
     saveBtn.addEventListener("click", saveBtnClick);
 
-    //clusterBtn = document.getElementById("cluster-btn");
-    //clusterBtn.addEventListener("click", clusterBtnClick);
+    clusterBtn = document.getElementById("cluster-btn");
+    clusterBtn.addEventListener("click", clusterBtnClick);
+    screenBtn = document.getElementById("screenshot-btn");
+    screenBtn.addEventListener("click", screenShotBtnClick);
 
     tableAdd = document.getElementById("add-btn");
     tableAdd.addEventListener("click", tableAddClick);
 
     nameField = document.getElementById("add-name");
-    for(let i=1; i<=5; ++i) {
-        scoreField.push(document.getElementById("add-score"+i));
+    for (let i = 1; i <= 5; ++i) {
+        scoreField.push(document.getElementById("add-score" + i));
     }
 
     table.addEventListener("dblclick", tableRemoveClick);
-
+    ctx = document.getElementById("myChart").getContext("2d");
     svg = d3.select("#graph").append("svg")
         .attr("width", width)
         .attr("height", height);
@@ -105,6 +131,7 @@ function init() {
 function setupTimeMode() {
     graphPane.classList.remove("hidden");
     tablePane.classList.add("hidden");
+    plotChart();
 }
 
 function setupDataMode() {
@@ -112,6 +139,84 @@ function setupDataMode() {
     tablePane.classList.remove("hidden");
 }
 
+function plotChart() {
+    let labels = [];
+    let t1 = [];
+    let t2 = [];
+    let t3 = [];
+    let t4 = [];
+    let t5 = [];
+    for (let i = 0; i < saveGraph["nodes"].length; ++i) {
+        labels.push(saveGraph["nodes"][i]["name"]);
+        t1.push(timeGraphs[0]["nodes"][i]["RAI"]);
+        t2.push(timeGraphs[1]["nodes"][i]["RAI"]);
+        t3.push(timeGraphs[2]["nodes"][i]["RAI"]);
+        t4.push(timeGraphs[3]["nodes"][i]["RAI"]);
+        t5.push(timeGraphs[4]["nodes"][i]["RAI"]);
+    }
+    let config = {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'time1',
+                data: t1,
+                backgroundColor: chartColors.blue,
+                borderColor: chartColors.blue,
+                fill: false
+            }, {
+                label: 'time2',
+                data: t2,
+                    backgroundColor: chartColors.green,
+                    borderColor: chartColors.green,
+                    fill: false
+            }, {
+                label: 'time3',
+                data: t3,
+                    backgroundColor: chartColors.red,
+                    borderColor: chartColors.red,
+                    fill: false
+            }, {
+                label: 'time4',
+                data: t4,
+                    backgroundColor: chartColors.orange,
+                    borderColor: chartColors.orange,
+                    fill: false
+            }, {
+                label: 'time5',
+                data: t5,
+                    backgroundColor: chartColors.purple,
+                    borderColor: chartColors.purple,
+                    fill: false
+            }]
+        },
+        options: {
+            maintainAspectRatio: false,
+            responsive:true,
+            scales: {
+                xAxes: [{
+                    display: true,
+                    scaleLabel: {
+                        labelString: 'Student'
+                    }
+                }
+                ],
+                yAxes: [{
+                    display:true,
+                    scaleLabel:{
+                        labelString:'RAI'
+                    },
+                    ticks: {
+                        beginAtZero: false
+                    }
+                }]
+            }
+        }
+    }
+    if (chart !== undefined)
+        chart.destroy();
+    chart = new Chart(ctx,config);
+}
 
 function visualize() {
 
@@ -150,7 +255,7 @@ function visualize() {
         node.attr("cx", function (d) { return d.x; })
             .attr("cy", function (d) { return d.y; });
     });
-    barViz();
+    //barViz();
     console.log("visualized!!");
 }
 
@@ -171,6 +276,7 @@ function tabClick() {
     state = id;
     console.log("tab click working " + id + " " + state);
     /* visualization code */
+    visualize();
 }
 
 function dataTabClick() {
@@ -187,7 +293,7 @@ function dataTabClick() {
 
 function loadBtnClick() {
     console.log("loadBtn click!!");
-
+    dataChanged = false;
     dialog.showOpenDialog((filenames) => {
 
         if (filenames === undefined) {
@@ -207,7 +313,7 @@ function loadBtnClick() {
             console.log(tableGraph["nodes"]);
             //dataTable.rows().add(["cell","bell","dell","kell","jell","rell"]);
             let newRows = [];
-            for (let i=0; i<tableGraph["nodes"].length; ++i) {
+            for (let i = 0; i < tableGraph["nodes"].length; ++i) {
                 let r = [
                     tableGraph["nodes"][i]["name"],
                     tableGraph["nodes"][i]["score1"].toString(),
@@ -230,18 +336,20 @@ function saveBtnClick() {
         return;
     syncGraphs();
     console.log('saveBtn click');
+    if (!dataChanged)
+        return;
     const options = {
         defaultPath: app.getAppPath() + '/data.json',
         securityScopedBookmarks: true
     }
-    dialog.showSaveDialog(null,options, function(filename) {
-        if(filename === undefined) {
+    dialog.showSaveDialog(null, options, function (filename) {
+        if (filename === undefined) {
             console.log("no file selected");
             return;
         }
         json = JSON.stringify(saveGraph);
-        fs.writeFile(filename,json, function(err) {
-            if(err) throw err;
+        fs.writeFile(filename, json, function (err) {
+            if (err) throw err;
             console.log('saved');
         })
     });
@@ -266,15 +374,16 @@ function tableAddClick() {
         scoreField[4].value
     ]
     console.log(newNode);
-    if(tableGraph === undefined) {
+    if (tableGraph === undefined) {
         tableGraph = {
-            "nodes":[]
+            "nodes": []
         }
     }
 
     tableGraph["nodes"].push(newNode);
     syncGraphs();
     dataTable.rows().add(newRow);
+    dataChanged = true;
 }
 
 function tableRemoveClick(event) {
@@ -283,27 +392,27 @@ function tableRemoveClick(event) {
     if (event.target.tagName.toLowerCase() == 'td') {
         let idx = event.target.rowIndex;
         dataTable.rows().remove(event.target.rowIndex);
-        tableGraph["nodes"].splice(idx,1);
+        tableGraph["nodes"].splice(idx, 1);
         syncGraphs();
+        dataChanged = true;
     }
 }
 
 function clusterBtnClick() {
 
-    // need to change this to accomodate different times
-
-    graph = JSON.parse(JSON.stringify(saveGraph));
-    softMax();
-
-    addClusterLinks(); // removes old links
     visualize();
-    netClustering.cluster(graph.nodes, graph.links);
+    netClustering.cluster(timeGraphs[state - 1].nodes, timeGraphs[state - 1].links);
     svg.selectAll(".node")
         .transition()
         .duration(2000)
         .style("fill", function (d) { return color(d.cluster); });
 }
 
+function screenShotBtnClick() {
+    saveSvgAsPng(document.getElementsByTagName("svg")[0], "plot.png", {
+        scale: 1, backgroundColor: "#FFFFFF"
+    });
+}
 // auxialiary function
 
 /**
@@ -337,19 +446,19 @@ function syncGraphs() {
     console.log(saveGraph);
     let t;
     timeGraphs = [];
-    for (let k=0; k<5; ++k) {
+    for (let k = 0; k < 5; ++k) {
         timeGraphs.push({
             "nodes": [],
             "links": []
         });
     }
-    
+
     let n = saveGraph["nodes"].length;
     let hash;
     for (let s = 1; s <= 5; ++s) {
-        hash = "score"+s;
-        for (let j=0; j<n; ++j) {
-            timeGraphs[s-1]["nodes"].push({
+        hash = "score" + s;
+        for (let j = 0; j < n; ++j) {
+            timeGraphs[s - 1]["nodes"].push({
                 "name": saveGraph["nodes"][j]["name"],
                 "score": saveGraph["nodes"][j][hash]
             });
@@ -358,19 +467,6 @@ function syncGraphs() {
         softMax(s);
         addClusterLinks(s);
     }
-}
-
-/**
- * USELESS to be removed!
- */
-
-function addLinks() {
-
-    let edge1, edge2, diff, raiDiff, edgeWeight;
-
-    graph["links"] = [];
-    console.log("addLinks!!");
-
 }
 
 /**
@@ -405,125 +501,5 @@ function addClusterLinks(state) {
         }
     }
 }
-
-
-// Visualization attributes
-//-----------
-
-// Scales
-//-----------
-function barViz() {
-    xScale = d3.scale.ordinal()
-        .domain(d3.range(dataset.length))
-        .rangeRoundBands([0, w], 0.05);
-
-    yScale = d3.scale.linear()
-        .domain([0, d3.max(dataset)])
-        .range([0, h]);
-
-    bars = barSvg.selectAll('rect')
-        .data(graph["nodes"])
-        .enter()
-        .append('rect')
-        .attr('x', function (d, i) {
-            return xScale(i);
-        })
-        .attr('y', function (d) {
-            return h - yScale(d["RAI"]);
-        })
-        .attr('width', xScale.rangeBand())
-        .attr('height', function (d) {
-            return yScale(d["RAI"]);
-        })
-        .attr('fill', function (d) {
-            return 'rgb(0, 191, 255)';//" + (d * 255) + ")';
-        })
-        .on('click', function () {
-            sortBars();
-        })
-        .on('mouseover', function (d) {
-            var xPos, yPos;
-
-            //Get this bar's x/y values, then augment for the tooltip
-            xPos = 110 + parseFloat(d3.select(this).attr("x")) + xScale.rangeBand() / 2;
-            yPos = 400 + parseFloat(d3.select(this).attr("y")) / 2 + h / 2;
-
-            d3.select('#bartooltip')
-                .style('left', xPos + 'px')
-                .style('top', yPos + 'px')
-                .select('#value')
-                .text(Number(d["RAI"].toFixed(2)));
-
-            //Show the tooltip
-            d3.select('#bartooltip').classed('hidden', false);
-        })
-        .on('mouseout', function () {
-            //Remove the tooltip
-            d3.select('#bartooltip').classed('hidden', true);
-        });
-
-    labels = barSvg.selectAll("text")
-        .data(graph["nodes"])
-        .enter()
-        .append("text")
-        .style("pointer-events", "none")
-        .text(function (d) {
-            return d["name"];
-        })
-        .attr("text-anchor", "middle")
-        .attr("x", function (d, i) {
-            return xScale(i) + xScale.rangeBand() / 2;
-        })
-        .attr("y", function (d) {
-            return h - yScale(d["RAI"]) + 14;
-        })
-        .attr("font-family", "sans-serif")
-        .attr("font-size", "11px")
-        .attr("fill", "white")
-        .on('click', function () {
-            sortBars();
-        });
-
-}
-
-var sortOrder = false;
-
-var sortBars = function () {
-    sortOrder = !sortOrder;
-
-    barSvg.selectAll('rect')
-        .sort(function (a, b) {
-            return sortCallback(a, b, sortOrder);
-        })
-        .transition()
-        .delay(function (d, i) {
-            return i * 50;
-        })
-        .duration(1000)
-        .attr("x", function (d, i) {
-            return xScale(i);
-        });
-
-    barSvg.selectAll('text')
-        .sort(function (a, b) {
-            return sortCallback(a, b, sortOrder);
-        })
-        .transition()
-        .delay(function (d, i) {
-            return i * 50;
-        })
-        .duration(1000)
-        .attr("x", function (d, i) {
-            return xScale(i) + xScale.rangeBand() / 2;
-        });
-};
-
-function sortCallBack(a, b, order) {
-    if (order) {
-        return d3.ascending(a["RAI"], b["RAI"]);
-    } else {
-        return d3.descending(a["RAI"], b["RAI"]);
-    }
-};
 
 init();

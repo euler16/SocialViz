@@ -4,15 +4,15 @@ let win;
 
 function createWindow() {
     win = new BrowserWindow({
-        width: 1100, 
-        height: 1000,
+        width: 900, 
+        height: 1300,
         'min-width': 600,
         'accept-first-mouse': true,
         'title-bar-style': 'hidden'
     });
     win.loadFile('public/index.html');
     
-    win.webContents.openDevTools();
+    //win.webContents.openDevTools();
 
     win.on('closed',()=>{
         win = null;
