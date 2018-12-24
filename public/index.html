@@ -65,7 +65,14 @@ a {
     text-decoration: none !important;
     color: rgb(96,96,96);
 }
-
+/* canvas {
+    padding-left: 0;
+    padding-right: 0;
+    margin-left: auto;
+    margin-right: auto;
+    display: block;
+    width: 200px;
+} */
 </style>
 <link type="text/css" rel="stylesheet" href="css/photon.min.css" media="screen,projection" />
 
@@ -74,29 +81,6 @@ a {
   <div class="window">
       <header class="toolbar toolbar-header">
         <h1 class="title">SocialViz</h1>
-      
-        <!-- <div class="toolbar-actions">
-          <div class="btn-group">
-            <button class="btn btn-large btn-default">
-              <span class="icon icon-home"></span>
-            </button>
-            <button id="load-btn" class="btn btn-large btn-default">
-              <span class="icon icon-folder icon-text"></span>
-               Open
-            </button>
-            <button id="save-btn0" class="btn btn-large btn-default">
-              <span class="icon icon-floppy icon-text"></span>
-               Save Data
-            </button>
-            <button id="screenshot-btn" class="btn btn-large btn-default">
-              <span class="icon icon-picture icon-text"></span>
-               Save Graph as Image
-            </button>
-        </div>
-        <button id="cluster-btn" class="btn btn-large btn-default">
-          <span class="icon icon-flow-tree icon-text"></span>
-          Cluster
-        </button> -->
       </header>
 
       <!-- TABS -->
@@ -133,9 +117,7 @@ a {
 
           <div class="pane" style="text-align:center;" id="table-pane">
           <div id="table" class="table-editable">
-            <!-- <span class="table-add icon icon-user-add"></span> -->
             <table class="table table-striped" id="data-table">
-              
             </table>
             
           </div>
@@ -162,32 +144,21 @@ a {
           <div class="pane hidden" style="text-align:center;" id="graph-pane">  
             <div id="graph">
             </div>
-            <div id="barchart" >
-              <div id="bartooltip" class="hidden">
-                <p><span id="value"></span></p>
-              </div>
+            <button id="cluster-btn" class="btn btn-large btn-default">
+              <span class="icon icon-flow-tree icon-text"></span>
+              Cluster
+            </button>
+            <button id="screenshot-btn" class="btn btn-large btn-default">
+              <span class="icon icon-picture icon-text"></span>
+              Save Graph as Image
+            </button>
+            <div style= "text-align: center;">
+              <h4>Line Chart</h4>
+             <canvas id="myChart" style="width:200px;height:150px;">line chart</canvas>
             </div>
+            
           </div>
 
-
-          <!-- <div class="pane-sm sidebar">
-            <h3>&nbsp; Add New</h3>
-            <form>
-              <div class="form-group">
-                <label>&nbsp; Name</label>
-                <input type="text" id="add-name" class="form-control" placeholder="Name">
-              </div>
-              <div class="form-group">
-                <label>&nbsp; Score</label>
-                <input type="text" id="add-score" class="form-control" placeholder="Score">
-              </div>
-              
-              <div class="form-actions">
-                <button type="button" class="btn btn-form btn-default">Cancel</button>
-                <button type="button" id="addnode-btn">Add</button>
-              </div>
-            </form>
-          </div> -->
         </div>
       </div>
 
